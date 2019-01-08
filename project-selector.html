@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>2019網程專案抽籤</title>
+	<link rel="Shortcut Icon" type="image/x-icon" href="toad.ico" />
+    <style type="text/css">
+        body {
+            font-family: Calibri, Helvetica, "Microsoft YaHei", "LiHei Pro", TW-Kai;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        video {
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            z-index: -1;
+        }
+
+        div#mainDiv {
+            position: absolute;
+            top: 0px;
+            left: 170px;
+            z-index: 2;
+        }
+
+        div#current {
+            position: absolute;
+            font-size: 130%;
+            text-align: left;
+            color: navy;
+            top: 80px;
+            left: 80px;
+            width: 300px;
+            z-index: 3;
+
+        }
+
+        #project {
+            font-size: 140%;            
+        }
+
+        div#rightDiv {
+            float: right;
+            z-index: 5;
+        }
+
+        ul,
+        li {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .item-wrap {
+            width: 250px;
+        }
+
+        .item {
+            width: 220px;
+            display: inline-block;
+            padding: 10px;
+            background-color: orange;
+            opacity: 0.8;
+            margin: 5px;
+            box-sizing: border-box;
+            vertical-align: top;
+            text-align: left;
+        }
+
+        div#rightList {
+            display: none;
+            font-size: 14px;
+        }
+
+        @media only screen and (max-width: 900px) {
+            #rightDiv {
+                display: none;
+            }
+        }
+    </style>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js">
+    </script>
+    <script>
+        // variables used to refer to page elements
+        let themeImg; // refers to first theme img
+        let playButton; // refers to Play button
+        let video; // refers to audio clip
+        let projectList = [];
+        let counter = 0;
+
+        function start() {
+            $("#play").click(play);
+            $("#playNoSound").click(showResults);
+            $("#movieShow").on("ended", showResults);
+            $("#current").hide();
+            $("#rightList").html("");
+            video = document.getElementById("movieShow");
+            themeImg = document.getElementById("theme");
+
+            let session = window.prompt("請輸入場次(1/2):", "1");
+            if (session == "1") getList("2019-first-session.json");
+            else if (session == "2") getList("2019-second-session.json");
+            else window.alert("Incorrect input!");
+
+            $('.item').on('click', function () {
+                $(this).children('div').slideToggle();
+            });
+        }
+
+        function getList(jsonURL) {
+            $.getJSON(jsonURL, function (data) {
+                projectList = data;
+
+                for (let i = projectList.length - 1; i > 0; i--) {
+                    let j = Math.floor(Math.random() * (i + 1));
+                    let temp = projectList[i];
+                    projectList[i] = projectList[j];
+                    projectList[j] = temp;
+                }
+                //console.log(projectList);
+            });
+        }
+
+        function play() {
+            if (counter >= projectList.length) {
+                alert("已抽籤完畢");
+                return;
+            }
+            
+            themeImg.src = "mario.png";
+            $("#current").hide();
+            video.play();
+        }
+
+        function showResults() {
+            if (counter >= projectList.length) {
+                alert("已抽籤完畢");
+                return;
+            }
+
+            themeImg.src = "background.jpg";
+            $("#current").hide();
+            $("#theme").hide();
+
+            let content = " ";
+
+            $("#seq").text("" + (counter + 1));
+            $("#prjID").text(projectList[counter].no);
+            $("#student1").text(projectList[counter].name1);
+            $("#student2").text(projectList[counter].name2);
+            $("#project").text(projectList[counter].project);
+            if (projectList[counter].url) {
+                $("#project").attr("href", projectList[counter].url);
+                $("#project").css("text-decoration", "underline");
+                $("#project").off("click");
+            } else {
+                $("#project").attr("href", "https://cdn.pixabay.com/photo/2018/01/04/15/51/error-3060993_960_720.png");
+                $("#project").css("text-decoration", "none");
+                $("#project").click(function (e) {
+                    e.preventDefault();
+                });
+            }
+
+            $("#theme").fadeIn(500);
+            $("#current").fadeIn(1500);
+
+            let shortItem = "[" + (counter < 9 ? "0" + (counter + 1) : (counter + 1)) + "]";
+
+            shortItem += "&nbsp;<a href='" + $("#project").attr("href") + "' target='_blank'>" + projectList[counter].project + '</a> <br>';
+            $("#rightList").append(shortItem);
+
+            counter++;
+        }
+
+        $(document).ready(start);
+
+    </script>
+</head>
+
+<body>
+
+    <audio id="video" preload="auto">
+        <source src="抽卡音效.mp3" type="audio/mpeg">Browser does not support audio tag</audio>
+    <video id="movieShow" preload="auto">
+        <source src="過場.mp4" type="video/mp4" height="604.8px">
+    </video>
+    <img id="toad" src="toad.png" alt="toad" width="210px" height="280px" style="position: absolute; top: 250px; left: 640px; z-index: -1">
+    <div id="mainDiv">
+        <img id="theme" src="mario.png" alt="mario" width="469px" height="480px">
+        <div id="current">
+            報告順序：
+            <span id="seq">X</span>
+            <br> 組別：
+            <span id="prjID">Y</span>
+            <br> 組員：
+            <span id="student1">同學一</span>&nbsp;
+            <span id="student2">同學二</span>
+            <br>
+            <br>
+            <a id="project" href="http://www.google.com" target="_black">Happy Tuesday!</a>
+        </div>
+        <br>
+        <input id="play" type="button" value="抽籤" style="width:469px;">
+        <br>
+        <input id="playNoSound" type="button" value="快速抽籤" style="width:469px;">
+    </div>
+
+    <div id="rightDiv">
+        <ul class="item-wrap">
+            <li class="item">已抽籤列表
+                <div id="rightList">
+                </div>
+            </li>
+        </ul>
+    </div>
+
+</body>
+
+</html>
